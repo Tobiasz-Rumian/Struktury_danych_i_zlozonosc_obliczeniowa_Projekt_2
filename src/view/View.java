@@ -2,13 +2,12 @@ package view;
 
 import addon.FileChooser;
 import addon.Results;
+import algorithm.Kruskal;
+import algorithm.Prim;
+import enums.Algorithm;
 import enums.Task;
-import representation.AdjacencyLists;
-import representation.AdjacencyMatrix;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -25,8 +24,7 @@ public class View {
 
     private static Random random = new Random();//Generator pseudolosowy
     private Results results = new Results();//Obiekt zawierający wyniki testów.
-    private AdjacencyMatrix adjacencyMatrix;
-    private AdjacencyLists adjacencyLists;
+    private addon.Task task;
 
     /**
      * Główna pętla programu, wyświetla główne menu.
@@ -44,17 +42,17 @@ public class View {
                     "0. Wyjscie", false);
 
             switch (select("Podaj numer zadania:", 0, 4)) {
-                case 1:selectTask(Task.MST);
+                case 1: task = new addon.Task(Task.MST);
                     break;
-                case 2: selectTask(Task.NSWG);
+                case 2: task = new addon.Task(Task.NSWG);
                     break;
-                case 3: selectTask(Task.MP);
+                case 3: task = new addon.Task(Task.MP);
                     break;
                 case 4: //TODO:Pełny test;
                     return;
                 case 0: return;
             }
-
+            selectTask();
         }
     }
 
@@ -103,7 +101,7 @@ public class View {
     /**
      * Funkcja pozwalająca na wybranie zadania wykonywanego na strukturze.
      */
-    private void selectTask(Task task) {
+    private void selectTask() {
         do {
             message(
                     View.title("wybor zadania") +
@@ -115,64 +113,31 @@ public class View {
 
             switch (View.select("Podaj numer zadania:", 0, 4)) {
                 case 1:
-
-                    loadFromFile(structure);
-                    message(structure.show(), false);
+                    task.clear();
+                    loadFromFile();
+                    message(task.toString(), false);
                     break;
                 case 2:
-                    structure.clear();
-                    loadFromFile(structure);
-                    message(structure.show(), false);
+                    //TODO: Generowanie losowe.
                     break;
                 case 3:
-                    View.message(View.title("odejmowanie"), false);
-                    if (structure.getClass() == Table.class)
-                        ((Table) structure).subtract(select("Podaj indeks", Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    else if (structure.getClass() == BidirectionalList.class)
-                        ((BidirectionalList) structure).subtract(select("Podaj wartość", Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    else structure.subtract(place, select("Podaj wartość", Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    message(structure.show(), false);
+                    message(task.toString(), false);
                     break;
                 case 4:
-                    View.message(View.title("dodawanie"), false);
-                    if (structure.getClass() == Table.class)
-                        ((Table) structure).add(select("Podaj indeks", Integer.MIN_VALUE, Integer.MAX_VALUE),
-                                select("Podaj wartość", Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    else if (structure.getClass() == BidirectionalList.class)
-                        ((BidirectionalList) structure).add(select("Podaj indeks", Integer.MIN_VALUE, Integer.MAX_VALUE),
-                                select("Podaj wartość", Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    else structure.add(place, select("Podaj wartość", Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    message(structure.show(), false);
-                    break;
-                case 5:
-                    View.message(View.title("znajdowanie"), false);
-                    if (structure.find(View.select("Podaj liczbe", Integer.MIN_VALUE, Integer.MAX_VALUE)))
-                        message("Liczba znajduje się w strukturze", false);
-                    else message("Liczba nie znajduje się w strukturze", true);
-                    message(structure.show(), false);
-                    break;
-                case 6:
-                    message(structure.show(), false);
-                    break;
-                case 7:
-                    results.clear();
-                    while (true) {
-                        message(View.title("test") +
-                                "1. Generuj populację struktury\n" +
-                                "2. Usun ze struktury\n" +
-                                "3. Wyszukaj w strukturze\n" +
-                                "4. Ustawienia\n" +
-                                "5. Pokaż wyniki\n" +
-                                "0. Zakończ test\n", false);
-                        int select = View.select("Podaj numer zadania:", 0, 5);
-                        if (select == 0) break;
-                        if (select == 1 || select == 2) {
-                            if (structure.getClass() == Table.class || structure.getClass() == BidirectionalList.class)
-                                place = choosePlace("Podaj miejsce, w które chcesz wstawiać");
-                            else place = Place.NULL;
-                        }
-                        test(select, place);
+                    switch (chooseAlgorithm()){
+                        case PRIM:task.setAlgorithm(new Prim());
+                        break;
+                        case KRUSKAL:task.setAlgorithm(new Kruskal(task));
+                            break;
+                        case DIJKSTR:
+                            break;
+                        case FORD_BELLMAN:
+                            break;
+                        case FORD_FULKERSON:
+                            break;
                     }
+                    message(task.toString(), false);
+                    message(task.executeAlgorithm(), false);
                     break;
                 case 0:
                     return;
@@ -197,9 +162,8 @@ public class View {
      * Wyświetla okno pozwalające na wybór pliku.
      * Usuwa pierwszy wyraz, gdyż według specyfikacji projektowej, pierwsza wartość oznacza ilość elementów.
      *
-     * @param structure Struktura, do której mają być załadowane dane.
      */
-    private void loadFromFile(Task task) {
+    private void loadFromFile() {
         FileChooser fileChooser = new FileChooser();
         if (fileChooser.getPath() == null) return;
         ArrayList<String> arrayList = new ArrayList<>();
@@ -209,30 +173,28 @@ public class View {
             e.getMessage();
         }
         String x = arrayList.get(0);
-        int graphSize=Integer.parseInt(x.substring(0,x.indexOf(" ")));
-        x=x.substring(x.indexOf(" ")+1,x.length());
-        int graphOrder=Integer.parseInt(x.substring(0,x.indexOf(" ")));
-        x=x.substring(x.indexOf(" ")+1,x.length());
-        if(task==Task.NSWG){
-            int startVertice = Integer.parseInt(x);
-        }else if(task==Task.MP){
-            int startVertice=Integer.parseInt(x.substring(0,x.indexOf(" ")));
-            x=x.substring(x.indexOf(" ")+1,x.length());
-            int endVertice=Integer.parseInt(x.substring(0,x.indexOf(" ")));
+        task.setGraphSize(Integer.parseInt(x.substring(0, x.indexOf(" "))));
+        x = x.substring(x.indexOf(" ") + 1, x.length());
+        if(task.getTypeOfTask() == Task.MST) task.createStructures(Integer.parseInt(x));
+        else{
+            task.createStructures(Integer.parseInt(x.substring(0, x.indexOf(" "))));
+            x = x.substring(x.indexOf(" ") + 1, x.length());
         }
-        adjacencyLists=new AdjacencyLists(graphOrder);
-        adjacencyMatrix=new AdjacencyMatrix(graphOrder);
+        if (task.getTypeOfTask() == Task.NSWG) this.task.setStartVertex(Integer.parseInt(x));
+        else if (task.getTypeOfTask() == Task.MP) {
+            task.setStartVertex(Integer.parseInt(x.substring(0, x.indexOf(" "))));
+            x = x.substring(x.indexOf(" ") + 1, x.length());
+            task.setEndVertex(Integer.parseInt(x.substring(0, x.indexOf(" "))));
+        }
         arrayList.remove(0);
-        for (String s:arrayList) {
-            int start=Integer.parseInt(s.substring(0,s.indexOf(" ")));
-            s=s.substring(s.indexOf(" ")+1,s.length());
-            int end=Integer.parseInt(s.substring(0,s.indexOf(" ")));
-            s=s.substring(s.indexOf(" ")+1,s.length());
-            int weight=Integer.parseInt(s.substring(0,s.indexOf(" ")));
-            adjacencyMatrix.add(start,end,weight);
-            adjacencyLists.add(start,end,weight);
+        for (String s : arrayList) {
+            int start = Integer.parseInt(s.substring(0, s.indexOf(" ")));
+            s = s.substring(s.indexOf(" ") + 1, s.length());
+            int end = Integer.parseInt(s.substring(0, s.indexOf(" ")));
+            s = s.substring(s.indexOf(" ") + 1, s.length());
+            int weight = Integer.parseInt(s);
+            task.addToStructures(start, end, weight);
         }
-        //TODO: Dokończyć, pozostało przekazanie pozostałych parametrów.
     }
 
     /**
@@ -363,20 +325,14 @@ public class View {
      * Funkcja pozwalająca na wybór, przez użytkownika, miejsca wstawienia danych.
      * Wybór odbywa się w konsoli.
      *
-     * @param label Tekst, który ma zostać wyświetlony użytkownikowi.
      * @return Zwraca wybrane miejsce.
      */
-    private Place choosePlace(String label) {
-        Place place = Place.NULL;
-        View.message("Gdzie odjac liczbe?", false);
-        View.message("1. Poczatek", false);
-        View.message("2. Koniec", false);
-        View.message("3. Losowo", false);
-        Integer i = View.select(label, 1, 3);
-        if (i.equals(1)) place = Place.START;
-        else if (i.equals(2)) place = Place.END;
-        else if (i.equals(3)) place = Place.RANDOM;
-        return place;
+    private Algorithm chooseAlgorithm() {
+        if(task.getTypeOfTask()==Task.MP)return Algorithm.FORD_FULKERSON;
+        View.message("Dostępne algorytmy", false);
+        View.message("1. "+task.getAvailableAlgorithms()[0].toString(), false);
+        View.message("2. "+task.getAvailableAlgorithms()[1].toString(), false);
+        return task.getAvailableAlgorithms()[View.select("Podaj numer wybranego algorytmu", 1, 2)-1];
     }
 
     /**
@@ -386,10 +342,10 @@ public class View {
      * @param end Wartość końcowa.
      * @return Zwraca postęp w postaci paska oraz procentu w postaci ułamka.
      */
-    private String showProgress(Integer now, Integer end) {
+    private String showProgress(int now, int end) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("[");
-        Integer percent = (int) ((now * 100.0f) / end);
+        int percent = (int) ((now * 100.0f) / end);
         for (int i = 0; i <= percent; i++) stringBuilder.append("=");
         for (int i = 0; i <= 100 - percent; i++) stringBuilder.append(" ");
         stringBuilder.append("]");
@@ -400,6 +356,7 @@ public class View {
     /**
      * Funkcja pozwalająca na wykonanie pełnych testów.
      */
+    /*
     private void fullTest() {
         int[] howMany = {2000, 4000, 6000, 8000, 10000};
         Structure[] structures = {new BstTree()};//new Table(),new BidirectionalList(), new BinaryHeap(), new BstTree()
@@ -427,7 +384,7 @@ public class View {
         }
         results.save();
         results.clear();
-    }
+    }*/
 
     public static void main(String[] args) {
         new View();
