@@ -53,4 +53,9 @@ public class PathElement implements Comparable{
         if(p1.compareTo(p2)==1)return p1;
         else return p2;
     }
+
+    @Override
+    public String toString(){
+        return "v1 "+startVertex+" v2 "+endVertex+" w "+weight;
+    }
 }

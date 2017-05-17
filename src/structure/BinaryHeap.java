@@ -61,7 +61,7 @@ public class BinaryHeap{
         if (index == 0) return;
         PathElement value = heapTable[index];
         int parentIndex = (index - 1) / 2;
-        if (value.compareTo(heapTable[parentIndex])!=-1) {
+        if (value.compareTo(heapTable[parentIndex])!=1) {
             heapTable[index] = heapTable[parentIndex];
             heapTable[parentIndex] = value;
         }
@@ -76,9 +76,8 @@ public class BinaryHeap{
         PathElement value = heapTable[index];
         int leftChildIndex = (2 * index) + 1;
         int rightChildIndex = (2 * index) + 2;
-        int biggestChild;
-        if(heapTable[leftChildIndex].compareTo(heapTable[rightChildIndex])==1)biggestChild=leftChildIndex;
-        else biggestChild=rightChildIndex;
+        int biggestChild=leftChildIndex;
+        if(heapTable[leftChildIndex].compareTo(heapTable[rightChildIndex])==1)biggestChild=rightChildIndex;
         if (value.compareTo(heapTable[biggestChild])!=-1 ) {//Jeżeli wartość jest mniejsza od sprawdzanego węzła, zamienia je miejscami
             heapTable[index] = heapTable[biggestChild];
             heapTable[biggestChild] = value;
@@ -86,5 +85,19 @@ public class BinaryHeap{
         heapifyDown(biggestChild);//Rekurencyjnie przechodzi w dół kopca
     }
 
+    public static void main(String[] args) {
+        BinaryHeap b = new BinaryHeap(5);
+        b.push(new PathElement(1,1,5));
+        b.push(new PathElement(1,1,4));
+        b.push(new PathElement(1,1,3));
+        b.push(new PathElement(1,1,2));
+        b.push(new PathElement(1,1,1));
+        for (PathElement p:b.heapTable) {
+            System.out.print(p.toString()+"\n");
+        }
+        System.out.print("\n\n\n");
+        for(int i=0;i<5;i++)
+        System.out.println(b.pop().toString());
+    }
 
 }

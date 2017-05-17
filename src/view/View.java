@@ -1,9 +1,6 @@
 package view;
 
-import addon.FileChooser;
 import addon.Results;
-import algorithm.Kruskal;
-import algorithm.Prim;
 import enums.Algorithm;
 import enums.Task;
 
@@ -125,9 +122,9 @@ public class View {
                     break;
                 case 4:
                     switch (chooseAlgorithm()){
-                        case PRIM:task.setAlgorithm(new Prim());
+                        case PRIM:message(task.prim(), false);
                         break;
-                        case KRUSKAL:task.setAlgorithm(new Kruskal(task));
+                        case KRUSKAL:message(task.kruskal(), false);
                             break;
                         case DIJKSTR:
                             break;
@@ -136,8 +133,6 @@ public class View {
                         case FORD_FULKERSON:
                             break;
                     }
-                    message(task.toString(), false);
-                    message(task.executeAlgorithm(), false);
                     break;
                 case 0:
                     return;
@@ -164,10 +159,12 @@ public class View {
      *
      */
     private void loadFromFile() {
-        FileChooser fileChooser = new FileChooser();
-        if (fileChooser.getPath() == null) return;
+        //FileChooser fileChooser = new FileChooser();
+        //if (fileChooser.getPath() == null) return;
         ArrayList<String> arrayList = new ArrayList<>();
-        try (Stream<String> stream = Files.lines(Paths.get(fileChooser.getPath()))) {
+        //try (Stream<String> stream = Files.lines(Paths.get(fileChooser.getPath()))) {
+        //TODO: Przywrócić poprzednią wersję po zakończeniu testów
+        try (Stream<String> stream = Files.lines(Paths.get("D:\\java\\projekty\\SDiZO Projekt 2\\test1.txt"))) {//Zmodyfikowana wersja na potrzeby testów.
             stream.filter(x -> !x.equals("")).forEach(arrayList::add);
         } catch (IOException e) {
             e.getMessage();

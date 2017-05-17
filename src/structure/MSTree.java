@@ -28,5 +28,8 @@ public class MSTree {
         sb.append("Minimalna waga drzewa rozpinającego: ").append(weight).append("\n");
         return sb.toString();
     }
-
+    public TNode getAList(int n)
+    {
+        return table[n];
+    }
 }
