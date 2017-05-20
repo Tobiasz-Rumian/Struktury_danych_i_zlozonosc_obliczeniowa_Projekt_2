@@ -193,7 +193,7 @@ public class Task {
         MSTree msTree;
 
         dsStruct = new DSStruct(graphOrder);                  // Struktura zbiorów rozłącznych
-        heap = new BinaryHeap(graphSize);                     // Kolejka priorytetowa oparta na kopcu
+        heap = new BinaryHeap(graphSize*graphSize);                     // Kolejka priorytetowa oparta na kopcu
         msTree = new MSTree(graphOrder);                    // Minimalne drzewo rozpinające
         for (i = 0; i < graphOrder; i++)
             dsStruct.MakeSet(i);                 // Dla każdego wierzchołka tworzymy osobny zbiór
@@ -217,7 +217,7 @@ public class Task {
         TNode tNode;
         int i, v = 0;
         boolean[] visited = new boolean[graphOrder];
-        BinaryHeap heap = new BinaryHeap(graphSize);                // Kolejka priorytetowa oparta na kopcu
+        BinaryHeap heap = new BinaryHeap(graphSize*graphSize);                // Kolejka priorytetowa oparta na kopcu
         MSTree mSTree = new MSTree(graphOrder), graph = new MSTree(graphOrder);                    // Minimalne drzewo rozpinające i Graf
 
         for (PathElement p : getElements(matrix)) graph.addEdge(p);
