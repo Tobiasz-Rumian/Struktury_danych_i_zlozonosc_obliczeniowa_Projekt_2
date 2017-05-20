@@ -11,7 +11,7 @@ public class AdjacencyMatrix implements GraphRepresentation {
         matrix=new int[graphOrder][graphOrder];
         for(int i=0;i<graphOrder;i++){
             for (int j=0;j<graphOrder;j++){
-                matrix[i][j]=-1;
+                matrix[i][j]=Integer.MIN_VALUE;
             }
         }
     }

@@ -121,18 +121,7 @@ public class View {
                     message(task.toString(), false);
                     break;
                 case 4:
-                    switch (chooseAlgorithm()){
-                        case PRIM:message(task.prim(), false);
-                        break;
-                        case KRUSKAL:message(task.kruskal(), false);
-                            break;
-                        case DIJKSTR:
-                            break;
-                        case FORD_BELLMAN:
-                            break;
-                        case FORD_FULKERSON:
-                            break;
-                    }
+                    message(task.getAlgorithm(chooseAlgorithm()),false);
                     break;
                 case 0:
                     return;
@@ -164,7 +153,7 @@ public class View {
         ArrayList<String> arrayList = new ArrayList<>();
         //try (Stream<String> stream = Files.lines(Paths.get(fileChooser.getPath()))) {
         //TODO: Przywrócić poprzednią wersję po zakończeniu testów
-        try (Stream<String> stream = Files.lines(Paths.get("D:\\java\\projekty\\SDiZO Projekt 2\\test1.txt"))) {//Zmodyfikowana wersja na potrzeby testów.
+        try (Stream<String> stream = Files.lines(Paths.get("D:\\java\\projekty\\SDiZO Projekt 2\\test4.txt"))) {//Zmodyfikowana wersja na potrzeby testów.
             stream.filter(x -> !x.equals("")).forEach(arrayList::add);
         } catch (IOException e) {
             e.getMessage();
@@ -181,7 +170,7 @@ public class View {
         else if (task.getTypeOfTask() == Task.MP) {
             task.setStartVertex(Integer.parseInt(x.substring(0, x.indexOf(" "))));
             x = x.substring(x.indexOf(" ") + 1, x.length());
-            task.setEndVertex(Integer.parseInt(x.substring(0, x.indexOf(" "))));
+            task.setEndVertex(Integer.parseInt(x.substring(0, x.length())));
         }
         arrayList.remove(0);
         for (String s : arrayList) {
@@ -325,7 +314,6 @@ public class View {
      * @return Zwraca wybrane miejsce.
      */
     private Algorithm chooseAlgorithm() {
-        if(task.getTypeOfTask()==Task.MP)return Algorithm.FORD_FULKERSON;
         View.message("Dostępne algorytmy", false);
         View.message("1. "+task.getAvailableAlgorithms()[0].toString(), false);
         View.message("2. "+task.getAvailableAlgorithms()[1].toString(), false);
