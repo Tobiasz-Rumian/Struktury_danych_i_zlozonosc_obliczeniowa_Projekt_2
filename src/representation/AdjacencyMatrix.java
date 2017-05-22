@@ -23,7 +23,11 @@ public class AdjacencyMatrix implements GraphRepresentation {
     public int getMatrixElement(int x,int y){
         return matrix[x][y];
     }
-
+    public int getDegree(int vertice){
+        int degree=0;
+        for(int i=0;i<size;i++) if(matrix[vertice][i]!=Integer.MIN_VALUE) degree++;
+        return degree;
+    }
     public int getSize() {
         return size;
     }

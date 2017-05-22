@@ -6,4 +6,6 @@ package representation;
 public interface GraphRepresentation {
 
     void add(int start,int end, int weight);
+    int getDegree(int vertice);
+
 }

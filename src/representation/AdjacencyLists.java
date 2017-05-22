@@ -24,7 +24,9 @@ public class AdjacencyLists implements GraphRepresentation {
     public ArrayList<Integer> getList(int i){
         return lists[i];
     }
-
+    public int getDegree(int vertice){
+        return lists[vertice].size()/2;
+    }
     public int getSize() {
         return size;
     }
