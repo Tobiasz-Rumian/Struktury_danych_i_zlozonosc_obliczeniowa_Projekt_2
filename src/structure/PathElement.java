@@ -1,7 +1,8 @@
 package structure;
 
 /**
- * Created by Tobiasz Rumian on 17.05.2017.
+ * Klasa reprezentująca krawędź.
+ * @author Tobiasz Rumian
  */
 public class PathElement implements Comparable{
     private int startVertex;
@@ -48,10 +49,6 @@ public class PathElement implements Comparable{
         result = 31 * result + endVertex;
         result = 31 * result + weight;
         return result;
-    }
-    static public PathElement max(PathElement p1,PathElement p2){
-        if(p1.compareTo(p2)==1)return p1;
-        else return p2;
     }
 
     @Override

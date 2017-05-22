@@ -1,7 +1,7 @@
 package representation;
 
 /**
- * Created by Tobiasz Rumian on 14.05.2017.
+ * Klasa reprezentująca reprezentacje macierzową.
  */
 public class AdjacencyMatrix implements GraphRepresentation {
     private int[][] matrix;

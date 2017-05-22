@@ -23,8 +23,6 @@ import java.util.stream.Stream;
  * @author Tobiasz Rumian.
  */
 public class View {
-
-    private static Random random = new Random();//Generator pseudolosowy
     private Results results = new Results();//Obiekt zawierający wyniki testów.
     private addon.Task task;
 
@@ -74,7 +72,7 @@ public class View {
      * @param max     Maksymalna akceptowalna wartość.
      * @return Zwraca odpowiedź użytkownika.
      */
-    public static int select(String message, Integer min, Integer max) {
+    private static int select(String message, Integer min, Integer max) {
         do {
             try {
                 message(message, false);
@@ -92,7 +90,7 @@ public class View {
      * @param message Wiadomość do wyświetlenia.
      * @param error   Jeżeli true, wyświetla wiadomość jako błąd.
      */
-    public static void message(String message, Boolean error) {
+    private static void message(String message, Boolean error) {
         if (error) System.err.println(message + "\n");
         else System.out.println(message + "\n");
     }
@@ -137,29 +135,14 @@ public class View {
     }
 
     /**
-     * Funkcja zwracająca wartość pseudolosową z podanego przedziału.
-     *
-     * @param min Minimalna wartość.
-     * @param max Maksymalna wartość.
-     * @return Zwraca liczbę pseudolosową z podanego przedziału.
-     */
-    public static Integer getRandom(Integer min, Integer max) {
-
-        return random.nextInt(max - min) + min;
-    }
-
-    /**
      * Funkcja pozwalająca na załadowanie danych z pliku tekstowego do struktury.
      * Wyświetla okno pozwalające na wybór pliku.
-     * Usuwa pierwszy wyraz, gdyż według specyfikacji projektowej, pierwsza wartość oznacza ilość elementów.
      */
     private void loadFromFile() {
         FileChooser fileChooser = new FileChooser();
         if (fileChooser.getPath() == null) return;
         ArrayList<String> arrayList = new ArrayList<>();
         try (Stream<String> stream = Files.lines(Paths.get(fileChooser.getPath()))) {
-            //TODO: Przywrócić poprzednią wersję po zakończeniu testów
-            //try (Stream<String> stream = Files.lines(Paths.get("D:\\java\\projekty\\SDiZO Projekt 2\\test4.txt"))) {//Zmodyfikowana wersja na potrzeby testów.
             stream.filter(x -> !x.equals("")).forEach(arrayList::add);
         } catch (IOException e) {
             e.getMessage();
@@ -186,10 +169,16 @@ public class View {
 
     /**
      * Funkcja pozwalająca na wykonanie testów na strukturze.
+     * @param algorithm Wykorzystany algorytm.
+     * @param graphOrder Ilość wierzchołków w grafie.
+     * @param density Gęstosć grafu.
+     * @param matrix true jeżeli algorytm jest testowany dla macierzy.
+     * @return Zwraca czas wykonania algorytmu.
      */
     private BigDecimal test(Algorithm algorithm, int graphOrder, int density, boolean matrix) {
         TimeTracker timeTracker = new TimeTracker();
         addon.Task task;
+        Random random=new Random();
         if (algorithm == Algorithm.PRIM || algorithm == Algorithm.KRUSKAL) task = new addon.Task(Task.MST);
         else task = new addon.Task(Task.NSWG);
         task.generateRandomGraph(graphOrder, density);
@@ -238,10 +227,10 @@ public class View {
     }
 
     /**
-     * Funkcja pozwalająca na wybór, przez użytkownika, miejsca wstawienia danych.
+     * Funkcja pozwalająca na wybór, przez użytkownika, algorytmu.
      * Wybór odbywa się w konsoli.
      *
-     * @return Zwraca wybrane miejsce.
+     * @return Zwraca wybrany algorytm.
      */
     private Algorithm chooseAlgorithm() {
         View.message("Dostępne algorytmy", false);
@@ -252,21 +241,12 @@ public class View {
 
     /**
      * Funkcja pozwalająca na zobaczenie postępu.
-     *
      * @param now Wartość chwilowa.
      * @param end Wartość końcowa.
-     * @return Zwraca postęp w postaci paska oraz procentu w postaci ułamka.
+     * @param time Czas wykonywania obliczenia.
+     * @param label Dodatkowa informacja do wyświetlenia.
      */
-    private String showProgress(int now, int end, long time,String label) {
-        //        StringBuilder stringBuilder = new StringBuilder();
-        //        stringBuilder.append("[");
-        //        int percent = (int) ((now * 100.0f) / end);
-        //        for (int i = 0; i <= percent; i++) stringBuilder.append("=");
-        //        for (int i = 0; i <= 100 - percent; i++) stringBuilder.append(" ");
-        //        stringBuilder.append("]");
-        //        stringBuilder.append(" ").append(percent).append("%");
-        //        return stringBuilder.toString();
-
+    private void showProgress(int now, int end, long time,String label) {
         StringBuilder string = new StringBuilder(140);
         int percent = (now * 100 / end);
         string
@@ -277,12 +257,9 @@ public class View {
                 .append('>')
                 .append(String.join("", Collections.nCopies(100 - percent, " ")))
                 .append(']')
-                //.append(String.join("", Collections.nCopies((int) (Math.log10(end)) - (int) (Math.log10(now)), " ")))
                 .append(String.format(" %d/%d    %d    %s", now, end,time,label));
         System.out.print(string);
-        return "";
     }
-
 
     public static void main(String[] args) {
         new View();

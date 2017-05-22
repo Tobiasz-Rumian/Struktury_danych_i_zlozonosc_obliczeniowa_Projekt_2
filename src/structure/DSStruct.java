@@ -1,7 +1,8 @@
 package structure;
 
 /**
- * Created by Tobiasz Rumian on 17.05.2017.
+ * Klasa reprezentująca zbiory rozłączne.
+ * @author Tobiasz Rumian
  */
 public class DSStruct {
     private DSNode[] z;

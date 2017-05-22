@@ -3,7 +3,7 @@ package representation;
 import java.util.ArrayList;
 
 /**
- * Created by Tobiasz Rumian on 14.05.2017.
+ * Klasa reprezentująca reprezentacje listową.
  */
 public class AdjacencyLists implements GraphRepresentation {
     private ArrayList<Integer>[] lists;

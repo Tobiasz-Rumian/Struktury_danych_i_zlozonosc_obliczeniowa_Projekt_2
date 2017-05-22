@@ -1,7 +1,8 @@
 package structure;
 
 /**
- * Created by Tobiasz Rumian on 20.05.2017.
+ * Klasa reprezentująca element listy.
+ * @author Tobiasz Rumian
  */
 public class LNode {
     private LNode next;
@@ -22,9 +23,5 @@ public class LNode {
 
     public void setNext(LNode next) {
         this.next = next;
-    }
-
-    public void setData(int data) {
-        this.data = data;
     }
 }

@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Created by Tobiasz Rumian on 17.05.2017.
+ * Klasa reprezentująca zadanie do wykonania.
+ * @author Tobiasz Rumian
  */
 public class Task {
     private AdjacencyLists adjacencyLists;
@@ -29,12 +30,22 @@ public class Task {
         this.typeOfTask = typeOfTask;
     }
 
+    /**
+     * Tworzy reprezentacje listową i macierzową.
+     * @param graphOrder Ilość wierzchołków.
+     */
     public void createStructures(int graphOrder) {
         this.graphOrder = graphOrder;
         adjacencyLists = new AdjacencyLists(graphOrder);
         adjacencyMatrix = new AdjacencyMatrix(graphOrder);
     }
 
+    /**
+     * Pozwala na dodanie krawędzi do struktur.
+     * @param start początek krawędzi.
+     * @param end koniec krawędzi.
+     * @param weight waga krawędzi.
+     */
     public void addToStructures(int start, int end, int weight) {
         if (adjacencyMatrix == null) return;
         adjacencyMatrix.add(start, end, weight);
@@ -45,14 +56,10 @@ public class Task {
         }
     }
 
-    public void setAdjacencyLists(AdjacencyLists adjacencyLists) {
-        this.adjacencyLists = adjacencyLists;
-    }
-
-    public void setAdjacencyMatrix(AdjacencyMatrix adjacencyMatrix) {
-        this.adjacencyMatrix = adjacencyMatrix;
-    }
-
+    /**
+     * Pozwala ustawić początkowy węzeł.
+     * @param startVertex początkowy węzeł.
+     */
     public void setStartVertex(int startVertex) {
         if (typeOfTask == enums.Task.MST) return;
         this.startVertex = startVertex;
@@ -66,6 +73,10 @@ public class Task {
         this.graphSize = graphSize;
     }
 
+    /**
+     * Pokazuje dostępne dla danego zadania algorytmy.
+     * @return Tablica dostępnych algorytmów.
+     */
     public Algorithm[] getAvailableAlgorithms() {
         Algorithm[] algorithm = new Algorithm[2];
         switch (typeOfTask) {
@@ -109,6 +120,11 @@ public class Task {
         graphSize = -1;
     }
 
+    /**
+     * Generuje losowy graf.
+     * @param graphOrder Ilość wierzchołków grafu.
+     * @param density Gęstość grafu w procentach.
+     */
     public void generateRandomGraph(int graphOrder, int density) {
         clear();
         BigDecimal b = new BigDecimal(((double)density / 100) * (((double)graphOrder * (double)graphOrder)-graphOrder));
@@ -181,6 +197,11 @@ public class Task {
         System.out.println("gęstość:" + ((double) graphSize2 / (double) ((this.graphOrder * this.graphOrder)-graphOrder)));
     }
 
+    /**
+     * Wykonuje zadany algorytm.
+     * @param algorithm typ algorytmu.
+     * @param matrix true jeżeli ma być wykonany na reprezentacji macierzowej.
+     */
     public void testAlgorithm(Algorithm algorithm,boolean matrix){
         switch (algorithm) {
             case KRUSKAL:kruskal(matrix);
@@ -194,6 +215,11 @@ public class Task {
         }
     }
 
+    /**
+     * Zwraca wynik algorytmudla postaci macierzowej oraz listowej.
+     * @param algorithm typ algorytmu.
+     * @return Wynik algorytmu.
+     */
     public String getAlgorithm(Algorithm algorithm) {
         StringBuilder sb = new StringBuilder();
         switch (algorithm) {
@@ -233,6 +259,11 @@ public class Task {
         return sb.toString();
     }
 
+    /**
+     * Zwraca listę krawędzi grafu.
+     * @param matrix true jeżeli pobieranie krawędzi ma być z reprezentacji macierzowej.
+     * @return Lista krawędzi grafu.
+     */
     private List<PathElement> getElements(boolean matrix) {
         int i, j;
         List<PathElement> p = new ArrayList<>();
@@ -255,7 +286,11 @@ public class Task {
         return p;
     }
 
-
+    /**
+     * Alorytm Kruskal'a.
+     * @param matrix true jeżeli ma być wykonywany dla postaci macierzowej.
+     * @return Wynik algorytmu.
+     */
     private String kruskal(boolean matrix) {
         PathElement pathElement;
         int i;
@@ -282,7 +317,11 @@ public class Task {
         }
         return msTree.print() + "\n";
     }
-
+    /**
+     * Alorytm Prim'a.
+     * @param matrix true jeżeli ma być wykonywany dla postaci macierzowej.
+     * @return Wynik algorytmu.
+     */
     private String prim(boolean matrix) {
         PathElement pathElement;
         TNode tNode;
@@ -299,8 +338,8 @@ public class Task {
 
         for (i = 1; i < graphOrder; i++) {         // Do drzewa dodamy n - 1 krawędzi grafu
             for (tNode = graph.getAList(v); tNode != null; tNode = tNode.getNext()) // Przeglądamy listę sąsiadów
-                if (!visited[tNode.getV()])          // Jeśli sąsiad jest nieodwiedzony,
-                    heap.push(new PathElement(v, tNode.getV(), tNode.getWeight()));// Dodajemy ją do kolejki priorytetowej
+                if (!visited[tNode.getVertex()])          // Jeśli sąsiad jest nieodwiedzony,
+                    heap.push(new PathElement(v, tNode.getVertex(), tNode.getWeight()));// Dodajemy ją do kolejki priorytetowej
 
             do pathElement = heap.pop();
             while (pathElement != null &&visited[pathElement.getEndVertex()]);       // Krawędź prowadzi poza drzewo?
@@ -314,6 +353,11 @@ public class Task {
         return mSTree.print() + "\n";
     }
 
+    /**
+     * Alorytm dijkstra'y.
+     * @param matrix true jeżeli ma być wykonywany dla postaci macierzowej.
+     * @return Wynik algorytmu.
+     */
     private String dijkstr(boolean matrix) {
         int[] costTable = new int[graphOrder],             // Tablica kosztów dojścia
                 predecessorsTable = new int[graphOrder],              // Tablica poprzedników
@@ -383,13 +427,13 @@ public class Task {
             // Modyfikujemy odpowiednio wszystkich sąsiadów u, którzy są w Q
 
             for (pw = graph[u]; pw != null; pw = pw.getNext())
-                if (!QS[pw.getV()] && (costTable[pw.getV()] > costTable[u] + pw.getWeight())) {
-                    costTable[pw.getV()] = costTable[u] + pw.getWeight();
-                    predecessorsTable[pw.getV()] = u;
+                if (!QS[pw.getVertex()] && (costTable[pw.getVertex()] > costTable[u] + pw.getWeight())) {
+                    costTable[pw.getVertex()] = costTable[u] + pw.getWeight();
+                    predecessorsTable[pw.getVertex()] = u;
 
                     // Po zmianie d[v] odtwarzamy własność kopca, idąc w górę
 
-                    for (child = heapPointer[pw.getV()]; child != 0; child = parent) {
+                    for (child = heapPointer[pw.getVertex()]; child != 0; child = parent) {
                         parent = child / 2;
                         if (costTable[heap[parent]] <= costTable[heap[child]]) break;
                         x = heap[parent]; heap[parent] = heap[child]; heap[child] = x;
@@ -407,7 +451,11 @@ public class Task {
         sb.append("\n");
         return sb.toString();
     }
-
+    /**
+     * Alorytm Bellman'a-Ford'a.
+     * @param matrix true jeżeli ma być wykonywany dla postaci macierzowej.
+     * @return Wynik algorytmu.
+     */
     private String bellmanFord(boolean matrix) {
         TNode[] tNodes = new TNode[graphOrder];// Tablica dynamiczna list sąsiedztwa
         double[] accessCosts = new double[graphOrder];
@@ -436,17 +484,17 @@ public class Task {
             test = true;                  // Oznacza, że algorytm nie wprowadził zmian do d i p
             for (j = 0; j < graphOrder; j++)        // Przechodzimy przez kolejne wierzchołki grafu
                 for (tNode = tNodes[j]; tNode != null; tNode = tNode.getNext()) // Przeglądamy listę sąsiadów wierzchołka x
-                    if (accessCosts[tNode.getV()] > accessCosts[j] + tNode.getWeight()) { // Sprawdzamy warunek relaksacji
+                    if (accessCosts[tNode.getVertex()] > accessCosts[j] + tNode.getWeight()) { // Sprawdzamy warunek relaksacji
                         test = false;           // Jest zmiana w d i p
-                        accessCosts[tNode.getV()] = accessCosts[j] + tNode.getWeight(); // Relaksujemy krawędź z x do jego sąsiada
-                        predecessors[tNode.getV()] = j;           // Poprzednikiem sąsiada będzie x
+                        accessCosts[tNode.getVertex()] = accessCosts[j] + tNode.getWeight(); // Relaksujemy krawędź z x do jego sąsiada
+                        predecessors[tNode.getVertex()] = j;           // Poprzednikiem sąsiada będzie x
                     }
             if (test) {
                 negativeCycle = true;
                 // Sprawdzamy istnienie ujemnego cyklu
                 for (j = 0; j < graphOrder; j++)
                     for (tNode = tNodes[j]; tNode != null; tNode = tNode.getNext())
-                        if (!(accessCosts[tNode.getV()] > accessCosts[j] + tNode.getWeight())) negativeCycle = true;
+                        if (!(accessCosts[tNode.getVertex()] > accessCosts[j] + tNode.getWeight())) negativeCycle = true;
                 break;// Jeśli nie było zmian, to kończymy
             }
         }

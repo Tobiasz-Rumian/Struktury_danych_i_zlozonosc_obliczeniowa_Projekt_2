@@ -1,7 +1,8 @@
 package enums;
 
 /**
- * Created by Tobiasz Rumian on 14.05.2017.
+ * Nazwy dostępnych zadań.
+ * @author Tobiasz Rumian
  */
 public enum Task {
     MST,NSWG

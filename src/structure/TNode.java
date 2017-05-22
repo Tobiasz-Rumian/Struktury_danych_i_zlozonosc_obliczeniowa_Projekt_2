@@ -1,15 +1,16 @@
 package structure;
 
 /**
- * Created by Tobiasz Rumian on 17.05.2017.
+ * Klasa reprezentująca element drzewa.
+ * @author Tobiasz Rumian
  */
 public class TNode {
-    TNode next;
-    int v,weight;
+    private TNode next;
+    private int vertex,weight;
 
-    public TNode(TNode next, int v, int weight) {
+    public TNode(TNode next, int vertex, int weight) {
         this.next = next;
-        this.v = v;
+        this.vertex = vertex;
         this.weight = weight;
     }
 
@@ -17,8 +18,8 @@ public class TNode {
         return next;
     }
 
-    public int getV() {
-        return v;
+    public int getVertex() {
+        return vertex;
     }
 
     public int getWeight() {

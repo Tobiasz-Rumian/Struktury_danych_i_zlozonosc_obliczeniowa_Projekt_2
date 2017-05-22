@@ -1,7 +1,8 @@
 package enums;
 
 /**
- * Created by Tobiasz Rumian on 17.05.2017.
+ * Nazwy dostępnych algorytmów
+ * @author Tobiasz Rumian
  */
 public enum Algorithm {
     PRIM, KRUSKAL,DIJKSTR, BELLMAN_FORD

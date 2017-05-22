@@ -22,8 +22,11 @@ public class BinaryHeap{
         heapTable = new PathElement[size];
     }
 
-
-    public PathElement pop() throws IllegalArgumentException, IndexOutOfBoundsException {
+    /**
+     * Usuwa z kopca korzeń
+     * @return korzeń kopca
+     */
+    public PathElement pop(){
         if(heapSize==0)return null;
         PathElement e = heapTable[0];
         if(heapSize==1) clear();
@@ -35,7 +38,11 @@ public class BinaryHeap{
         return e;
     }
 
-    public void push(PathElement element) throws IllegalArgumentException {
+    /**
+     * Dodaje wartość do kopca.
+     * @param element dodawana wartość.
+     */
+    public void push(PathElement element){
         heapTable[heapSize] = element;
         if (heapSize == 0) heapSize++;
         else{
@@ -43,12 +50,8 @@ public class BinaryHeap{
             heapSize++;//Zwiększamy rozmiar kopca o 1
         }
     }
-    public int size() {
-        return heapSize;
-    }
 
-
-    public void clear() {
+    private void clear() {
         heapSize = 0;
     }
 
@@ -84,20 +87,4 @@ public class BinaryHeap{
         }
         heapifyDown(biggestChild);//Rekurencyjnie przechodzi w dół kopca
     }
-
-    public static void main(String[] args) {
-        BinaryHeap b = new BinaryHeap(5);
-        b.push(new PathElement(1,1,5));
-        b.push(new PathElement(1,1,4));
-        b.push(new PathElement(1,1,3));
-        b.push(new PathElement(1,1,2));
-        b.push(new PathElement(1,1,1));
-        for (PathElement p:b.heapTable) {
-            System.out.print(p.toString()+"\n");
-        }
-        System.out.print("\n\n\n");
-        for(int i=0;i<5;i++)
-        System.out.println(b.pop().toString());
-    }
-
 }

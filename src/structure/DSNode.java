@@ -1,7 +1,8 @@
 package structure;
 
 /**
- * Created by Tobiasz Rumian on 17.05.2017.
+ * Klasa reprezentująca element zbioru rozłącznego.
+ * @author Tobiasz Rumian
  */
 public class DSNode {
     private int up,rank;
