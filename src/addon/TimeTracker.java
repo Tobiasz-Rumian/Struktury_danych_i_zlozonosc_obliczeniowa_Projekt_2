@@ -6,14 +6,14 @@ import java.math.BigDecimal;
  * Klasa pozwalająca na śledzenie czasu w milisekundach.
  * @author Tobiasz Rumian
  */
-class TimeTracker{
+public class TimeTracker{
     private Long startTime;
     private Long endTime;
 
     /**
      * Funkcja rozpoczynająca odliczanie czasu czasu.
      */
-    void start(){
+    public void start(){
         startTime=System.nanoTime();
     }
 
@@ -21,7 +21,7 @@ class TimeTracker{
      * Funkcja podająca różnice między czasem w danej chwili, a czasem startowym.
      * @return Zwraca różnicę  czasów.
      */
-    BigDecimal getElapsedTime(){
+    public BigDecimal getElapsedTime(){
         endTime=System.nanoTime();
         return BigDecimal.valueOf(endTime-startTime);
     }

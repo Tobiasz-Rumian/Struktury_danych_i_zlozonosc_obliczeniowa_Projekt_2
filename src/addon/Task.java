@@ -6,9 +6,12 @@ import representation.AdjacencyMatrix;
 import structure.*;
 import view.View;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Tobiasz Rumian on 17.05.2017.
@@ -17,10 +20,10 @@ public class Task {
     private AdjacencyLists adjacencyLists;
     private AdjacencyMatrix adjacencyMatrix;
     private int startVertex;
-    private int endVertex;
     private enums.Task typeOfTask;
     private int graphSize;
     private int graphOrder;
+
 
     public Task(enums.Task typeOfTask) {
         this.typeOfTask = typeOfTask;
@@ -42,14 +45,17 @@ public class Task {
         }
     }
 
+    public void setAdjacencyLists(AdjacencyLists adjacencyLists) {
+        this.adjacencyLists = adjacencyLists;
+    }
+
+    public void setAdjacencyMatrix(AdjacencyMatrix adjacencyMatrix) {
+        this.adjacencyMatrix = adjacencyMatrix;
+    }
+
     public void setStartVertex(int startVertex) {
         if (typeOfTask == enums.Task.MST) return;
         this.startVertex = startVertex;
-    }
-
-    public void setEndVertex(int endVertex) {
-        if (typeOfTask != enums.Task.MP) return;
-        this.endVertex = endVertex;
     }
 
     public enums.Task getTypeOfTask() {
@@ -70,10 +76,6 @@ public class Task {
             case NSWG:
                 algorithm[0] = Algorithm.DIJKSTR;
                 algorithm[1] = Algorithm.BELLMAN_FORD;
-                break;
-            case MP:
-                algorithm[0] = Algorithm.FORD_FULKERSON;
-                algorithm[1] = Algorithm.EDMONS_KARP;
                 break;
         }
         return algorithm;
@@ -104,8 +106,64 @@ public class Task {
         adjacencyLists = null;
         adjacencyMatrix = null;
         startVertex = -1;
-        endVertex = -1;
         graphSize = -1;
+    }
+
+    public void generateRandomGraph(int graphOrder, int density) {
+        clear();
+        BigDecimal b = new BigDecimal(((double)density / 100) * (((double)graphOrder * (double)graphOrder)-graphOrder));
+        b.round(new MathContext(0, RoundingMode.FLOOR));
+        graphSize = b.toBigInteger().intValue();
+        int graphSize1 = (b.divide(new BigDecimal(2),0,RoundingMode.FLOOR)).intValue();
+        boolean[][] used = new boolean[graphOrder][graphOrder];
+        this.graphOrder = graphOrder;
+        adjacencyLists = new AdjacencyLists(graphOrder);
+        adjacencyMatrix = new AdjacencyMatrix(graphOrder);
+        Random random = new Random();
+        int i, j;
+        for(i=0;i<graphOrder;i++) used[i][i]=true;
+        if (typeOfTask == enums.Task.MST) {
+            for (int x = 0; x < graphSize1; x++) {
+                do {
+                    i = random.nextInt(graphOrder);
+                    j = random.nextInt(graphOrder);
+                } while (used[i][j]);
+                used[i][j] = true;
+                used[j][i] = true;
+                int weight = random.nextInt(9) + 1;
+
+                adjacencyLists.add(i, j, weight);
+                adjacencyMatrix.add(i, j, weight);
+                adjacencyLists.add(j, i, weight);
+                adjacencyMatrix.add(j, i, weight);
+            }
+        }else {
+            for (int x = 0; x < graphSize; x++) {
+                do {
+                    i = random.nextInt(graphOrder);
+                    j=random.nextInt(graphOrder);
+                } while (used[i][j]);
+                used[i][j]=true;
+
+                int weight = random.nextInt(9) + 1;
+                adjacencyMatrix.add(i, j, weight);
+                adjacencyLists.add(i, j, weight);
+            }
+        }
+        System.out.println("gęstość:" + ((double) graphSize / (double) ((this.graphOrder * this.graphOrder)-graphOrder)));
+    }
+
+    public void testAlgorithm(Algorithm algorithm,boolean matrix){
+        switch (algorithm) {
+            case KRUSKAL:kruskal(matrix);
+                break;
+            case PRIM:prim(matrix);
+                break;
+            case DIJKSTR:dijkstr(matrix);
+                break;
+            case BELLMAN_FORD:bellmanFord(matrix);
+                break;
+        }
     }
 
     public String getAlgorithm(Algorithm algorithm) {
@@ -143,22 +201,6 @@ public class Task {
                 sb.append(bellmanFord(false));
                 sb.append("\n");
                 break;
-            case FORD_FULKERSON:
-                sb.append(View.title("Reprezentacja macierzowa"));
-                sb.append(fordFulkerson(true));
-                sb.append("\n");
-                sb.append(View.title("Reprezentacja listowa"));
-                sb.append(fordFulkerson(false));
-                sb.append("\n");
-                break;
-            case EDMONS_KARP:
-                sb.append(View.title("Reprezentacja macierzowa"));
-                sb.append(edmondsKarp(true));
-                sb.append("\n");
-                sb.append(View.title("Reprezentacja listowa"));
-                sb.append(edmondsKarp(false));
-                sb.append("\n");
-                break;
         }
         return sb.toString();
     }
@@ -185,6 +227,7 @@ public class Task {
         return p;
     }
 
+
     private String kruskal(boolean matrix) {
         PathElement pathElement;
         int i;
@@ -193,7 +236,7 @@ public class Task {
         MSTree msTree;
 
         dsStruct = new DSStruct(graphOrder);                  // Struktura zbiorów rozłącznych
-        heap = new BinaryHeap(graphSize*graphSize);                     // Kolejka priorytetowa oparta na kopcu
+        heap = new BinaryHeap(graphSize * graphSize);                     // Kolejka priorytetowa oparta na kopcu
         msTree = new MSTree(graphOrder);                    // Minimalne drzewo rozpinające
         for (i = 0; i < graphOrder; i++)
             dsStruct.MakeSet(i);                 // Dla każdego wierzchołka tworzymy osobny zbiór
@@ -217,7 +260,7 @@ public class Task {
         TNode tNode;
         int i, v = 0;
         boolean[] visited = new boolean[graphOrder];
-        BinaryHeap heap = new BinaryHeap(graphSize*graphSize);                // Kolejka priorytetowa oparta na kopcu
+        BinaryHeap heap = new BinaryHeap(graphSize * graphSize);                // Kolejka priorytetowa oparta na kopcu
         MSTree mSTree = new MSTree(graphOrder), graph = new MSTree(graphOrder);                    // Minimalne drzewo rozpinające i Graf
 
         for (PathElement p : getElements(matrix)) graph.addEdge(p);
@@ -232,11 +275,12 @@ public class Task {
                     heap.push(new PathElement(v, tNode.getV(), tNode.getWeight()));// Dodajemy ją do kolejki priorytetowej
 
             do pathElement = heap.pop();
-            while (visited[pathElement.getEndVertex()]);       // Krawędź prowadzi poza drzewo?
-
-            mSTree.addEdge(pathElement);                 // Dodajemy krawędź do drzewa rozpinającego
-            visited[pathElement.getEndVertex()] = true;         // Oznaczamy drugi wierzchołek jako odwiedzony
-            v = pathElement.getEndVertex();
+            while (pathElement != null &&visited[pathElement.getEndVertex()]);       // Krawędź prowadzi poza drzewo?
+            if (pathElement != null) {
+                mSTree.addEdge(pathElement);                 // Dodajemy krawędź do drzewa rozpinającego
+                visited[pathElement.getEndVertex()] = true;         // Oznaczamy drugi wierzchołek jako odwiedzony
+                v = pathElement.getEndVertex();
+            }
         }
         // Wyświetlamy wyniki
         return mSTree.print() + "\n";
@@ -394,131 +438,5 @@ public class Task {
             }
         } else sb.append("Znaleziono negatywny cykl!").append("\n");
         return sb.toString();
-    }
-
-    private String edmondsKarp(boolean matrix) {
-        Queue Q = new Queue();                        // Kolejka
-        int[][] C = new int[graphOrder][graphOrder];// C - przepustowości krawędzi
-        int[][] F = new int[graphOrder][graphOrder];// F - przepływy w krawędziach
-        int[] P = new int[graphOrder];// P   - poprzedniki na ścieżkach tworzonych przez BFS
-        int[] CFP = new int[graphOrder]; // CFP - przepustowość ścieżek
-        int fmax, cp, x, y, i;    // Zmienne proste algorytmu
-        boolean esc;                       // Do wychodzenia z zagnieżdżonych pętli
-        StringBuilder sb = new StringBuilder();
-
-        for (PathElement pathElement : getElements(matrix))
-            C[pathElement.getStartVertex()][pathElement.getEndVertex()] = pathElement.getWeight();
-
-        fmax = 0; //Maksymalny przepływ równy zero
-        while (true) {
-            for (i = 0; i < graphOrder; i++) P[i] = -1;
-            P[startVertex] = -2;
-            CFP[startVertex] = Integer.MAX_VALUE;
-            while (!Q.empty()) Q.pop();
-            Q.push(startVertex);
-            esc = false;
-            while (!Q.empty()) {
-                x = Q.front();
-                Q.pop();
-                for (y = 0; y < graphOrder; y++) {
-                    cp = C[x][y] - F[x][y];
-                    if (cp != 0 && (P[y] == -1)) {
-                        P[y] = x;
-                        if (CFP[x] > cp) CFP[y] = cp;
-                        else CFP[y] = CFP[x];
-                        if (y == endVertex) {
-                            fmax += CFP[endVertex];
-                            i = y;
-                            while (i != startVertex) {
-                                x = P[i];
-                                F[x][i] += CFP[endVertex];
-                                F[i][x] -= CFP[endVertex];
-                                i = x;
-                            }
-                            esc = true; break;
-                        }
-                        Q.push(y);
-                    }
-                }
-            if (esc) break;
-            }
-            if (!esc) break;
-        }
-        sb.append("\n").append("fmax = ").append(fmax).append("\n\n"); // wartość maksymalnego przepływu
-        for (x = 0; x < graphOrder; x++)
-            for (y = 0; y < graphOrder; y++)
-                if (C[x][y] != 0) sb.append(x).
-                        append(" -> ").
-                        append(y).append(" ").
-                        append(F[x][y]).append(":").
-                        append(C[x][y]).append("\n");
-        sb.append("\n");
-        return sb.toString();
-    }
-
-    private String fordFulkerson(boolean matrix) {
-        int[][] graph = new int[graphOrder][graphOrder];
-        int u, v;
-        for (PathElement pathElement:getElements(matrix))
-            graph[pathElement.getStartVertex()][pathElement.getEndVertex()] = pathElement.getWeight();
-
-
-        // Create a residual graph and fill the residual graph
-        // with given capacities in the original graph as
-        // residual capacities in residual graph
-        // Residual graph where rGraph[i][j] indicates
-        // residual capacity of edge from i to j (if there
-        // is an edge. If rGraph[i][j] is 0, then there is
-        // not)
-        int rGraph[][] = new int[graphOrder][graphOrder];
-        for (u = 0; u < graphOrder; u++)
-            for (v = 0; v < graphOrder; v++)
-                rGraph[u][v] = graph[u][v];
-        int parent[] = new int[graphOrder];// This array is filled by BFS and to store path
-        int max_flow = 0;  // There is no flow initially
-        // Augment the flow while there is path from source to sink
-        do {
-
-            /* Returns true if there is a path from source 's' to sink
-             't' in residual graph. Also fills parent[] to store the
-             path */
-
-            boolean visited[] = new boolean[graphOrder];// Create a visited array and mark all vertices as not visited
-            for (int i = 0; i < graphOrder; ++i) visited[i] = false;
-            // Create a queue, enqueue source vertex and mark source vertex as visited
-            LinkedList<Integer> queue = new LinkedList<>();
-            queue.add(startVertex);
-            visited[startVertex] = true;
-            parent[startVertex] = -1;
-            while (queue.size() != 0) {
-                u = queue.poll();
-                for (v = 0; v < graphOrder; v++) {
-                    if (!visited[v] && rGraph[u][v] > 0) {
-                        queue.add(v);
-                        parent[v] = u;
-                        visited[v] = true;
-                    }
-                }
-            }
-            if(visited[endVertex])break; // Jeżeli nie dotarliśmy do odpływu ze źródła, zakończ.
-
-            // Find minimum residual capacity of the edhes
-            // along the path filled by BFS. Or we can say
-            // find the maximum flow through the path found.
-            int path_flow = Integer.MAX_VALUE;
-            for (v = endVertex; v != startVertex; v = parent[v]) {
-                u = parent[v];
-                path_flow = Math.min(path_flow, rGraph[u][v]);
-            }
-            // update residual capacities of the edges and
-            // reverse edges along the path
-            for (v = endVertex; v != startVertex; v = parent[v]) {
-                u = parent[v];
-                rGraph[u][v] -= path_flow;
-                rGraph[v][u] += path_flow;
-            }
-            max_flow += path_flow;// Add path flow to overall flow
-        } while (true);
-       return "The maximum possible flow is " + max_flow;
     }
 }

@@ -2,13 +2,17 @@ package view;
 
 import addon.FileChooser;
 import addon.Results;
+import addon.TimeTracker;
 import enums.Algorithm;
 import enums.Task;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Stream;
@@ -35,18 +39,15 @@ public class View {
             message(View.title("menu glowne") +
                     "1. Wyznaczanie minimalnego drzewa rozpinającego\n" +
                     "2. Wyznaczanie najkrótszej ścieżki w grafie\n" +
-                    "3. Wyznaczanie maksymalnego przepływu\n" +
-                    "4. Wykonaj pełny test\n" +
+                    "3. Wykonaj pełny test\n" +
                     "0. Wyjscie", false);
 
-            switch (select("Podaj numer zadania:", 0, 4)) {
+            switch (select("Podaj numer zadania:", 0, 3)) {
                 case 1: task = new addon.Task(Task.MST);
                     break;
                 case 2: task = new addon.Task(Task.NSWG);
                     break;
-                case 3: task = new addon.Task(Task.MP);
-                    break;
-                case 4: //TODO:Pełny test;
+                case 3: createTests();
                     return;
                 case 0: return;
             }
@@ -116,13 +117,18 @@ public class View {
                     message(task.toString(), false);
                     break;
                 case 2:
-                    //TODO: Generowanie losowe.
+                    task.clear();
+                    int graphOrder = select("Podaj ilość wierzchołków", 0, Integer.MAX_VALUE);
+                    task.generateRandomGraph(graphOrder, select("Podaj gęstość", 0, 100));
+                    if (task.getTypeOfTask() == Task.NSWG)
+                        task.setStartVertex(select("Podaj wierzchołek początkowy", 0, graphOrder - 1));
+                    message(task.toString(), false);
                     break;
                 case 3:
                     message(task.toString(), false);
                     break;
                 case 4:
-                    message(task.getAlgorithm(chooseAlgorithm()),false);
+                    message(task.getAlgorithm(chooseAlgorithm()), false);
                     break;
                 case 0:
                     return;
@@ -146,15 +152,14 @@ public class View {
      * Funkcja pozwalająca na załadowanie danych z pliku tekstowego do struktury.
      * Wyświetla okno pozwalające na wybór pliku.
      * Usuwa pierwszy wyraz, gdyż według specyfikacji projektowej, pierwsza wartość oznacza ilość elementów.
-     *
      */
     private void loadFromFile() {
         FileChooser fileChooser = new FileChooser();
         if (fileChooser.getPath() == null) return;
         ArrayList<String> arrayList = new ArrayList<>();
         try (Stream<String> stream = Files.lines(Paths.get(fileChooser.getPath()))) {
-        //TODO: Przywrócić poprzednią wersję po zakończeniu testów
-        //try (Stream<String> stream = Files.lines(Paths.get("D:\\java\\projekty\\SDiZO Projekt 2\\test4.txt"))) {//Zmodyfikowana wersja na potrzeby testów.
+            //TODO: Przywrócić poprzednią wersję po zakończeniu testów
+            //try (Stream<String> stream = Files.lines(Paths.get("D:\\java\\projekty\\SDiZO Projekt 2\\test4.txt"))) {//Zmodyfikowana wersja na potrzeby testów.
             stream.filter(x -> !x.equals("")).forEach(arrayList::add);
         } catch (IOException e) {
             e.getMessage();
@@ -162,16 +167,11 @@ public class View {
         String x = arrayList.get(0);
         task.setGraphSize(Integer.parseInt(x.substring(0, x.indexOf(" "))));
         x = x.substring(x.indexOf(" ") + 1, x.length());
-        if(task.getTypeOfTask() == Task.MST) task.createStructures(Integer.parseInt(x));
-        else{
+        if (task.getTypeOfTask() == Task.MST) task.createStructures(Integer.parseInt(x));
+        else {
             task.createStructures(Integer.parseInt(x.substring(0, x.indexOf(" "))));
             x = x.substring(x.indexOf(" ") + 1, x.length());
-        }
-        if (task.getTypeOfTask() == Task.NSWG) this.task.setStartVertex(Integer.parseInt(x));
-        else if (task.getTypeOfTask() == Task.MP) {
-            task.setStartVertex(Integer.parseInt(x.substring(0, x.indexOf(" "))));
-            x = x.substring(x.indexOf(" ") + 1, x.length());
-            task.setEndVertex(Integer.parseInt(x.substring(0, x.length())));
+            task.setStartVertex(Integer.parseInt(x));
         }
         arrayList.remove(0);
         for (String s : arrayList) {
@@ -186,127 +186,56 @@ public class View {
 
     /**
      * Funkcja pozwalająca na wykonanie testów na strukturze.
-     *
-     * @param task  Numer zadania do wykonania.
-     * @param place Miejsce dodania/usunięcia ze struktury (wykorzystywane tylko dla list i tablic).
      */
-    /*private void test(int task, Place place) {
-        TimeTracker tracker = new TimeTracker();
+    private BigDecimal test(Algorithm algorithm, int graphOrder, int density, boolean matrix) {
+        TimeTracker timeTracker = new TimeTracker();
+        addon.Task task;
+        if (algorithm == Algorithm.PRIM || algorithm == Algorithm.KRUSKAL) task = new addon.Task(Task.MST);
+        else task = new addon.Task(Task.NSWG);
+        task.generateRandomGraph(graphOrder, density);
+        if (task.getTypeOfTask() == Task.NSWG) task.setStartVertex(random.nextInt(graphOrder - 1));
+        timeTracker.start();
+        task.testAlgorithm(algorithm, matrix);
+        return timeTracker.getElapsedTime();
 
+    }
+
+    /**
+     * Funkcja pozwalająca na wykonanie pełnych testów.
+     */
+    private void createTests() {
+        final int howManyRepeats = 100;
+        int[] graphOrders = {10, 30, 50, 70, 100};
+        int[] densitys = {25, 50, 75, 99};
+        boolean[] matrixes = {true, false};
         String label;
-        BigDecimal resultTime = new BigDecimal(0);
-        PopulationGenerator populationGenerator;
-        message(Messages.messageTest(), false);
-        switch (task) {
-            case 1://Generuj populację struktury
-                for (int i = 0; i < getHowManyRepeats(); i++) {
-                    message(showProgress(i, getHowManyRepeats()) + "     " +
-                            structure.toString() + "  " + getHowManyElements() + "  " +
-                            place.toString() + " Dodawanie", false);
+        Algorithm[] algorithms = {Algorithm.PRIM, Algorithm.KRUSKAL, Algorithm.DIJKSTR, Algorithm.BELLMAN_FORD};//Algorithm.PRIM, Algorithm.KRUSKAL, Algorithm.DIJKSTR, Algorithm.BELLMAN_FORD
+        BigDecimal time;
 
-                    populationGenerator = new PopulationGenerator();
-                    if (structure.getClass() == Table.class) {
-                        Table table = new Table();
-                        table.addAll(populationGenerator.getPopulation());
-                        table.subtract(Place.END, 0);
-                        int rand = random.nextInt();
-                        tracker.start();
-                        table.add(place, rand);
-                        resultTime = resultTime.add(tracker.getElapsedTime());
-                    } else {
-                        if (place == Place.RANDOM) {
-                            for (int j = 0; j < populationGenerator.getPopulation().length - 1; j++)
-                                structure.add(Place.END, populationGenerator.getPopulation()[j]);
-                            int add = populationGenerator.getPopulation()[populationGenerator.getPopulation().length - 1];
-                            tracker.start();
-                            structure.add(place, add);
-                            resultTime = resultTime.add(tracker.getElapsedTime());
-                            structure.clear();
-                        } else {
-                            for (int j = 0; j < populationGenerator.getPopulation().length - 1; j++)
-                                structure.add(place, populationGenerator.getPopulation()[j]);
-                            int add = populationGenerator.getPopulation()[populationGenerator.getPopulation().length - 1];
-                            tracker.start();
-                            structure.add(place, add);
-                            resultTime = resultTime.add(tracker.getElapsedTime());
-                            structure.clear();
+        for (Algorithm algorithm : algorithms) {
+            for (int graphOrder : graphOrders) {
+                for (int density : densitys) {
+                    for (boolean matrix : matrixes) {
+                        time = new BigDecimal(0).setScale(0,RoundingMode.CEILING);
+                        for (int i = 0; i < howManyRepeats; i++) {
+                            time = time.add(test(algorithm, graphOrder, density, matrix));
+                            System.gc();
+                            showProgress(i, howManyRepeats,time.longValue(), "     " +
+                                    algorithm.toString() + "  " + density + "  " +
+                                    graphOrder + "  " + matrix + "  ");
                         }
+                        time = time.divide(BigDecimal.valueOf(howManyRepeats), RoundingMode.UP);
+                        label = algorithm.toString() + "\t" + graphOrder + "\t" + density + "\t" + matrix;
+                        message(time.toString(), false);
+                        results.add(label, time.longValue());
                     }
                 }
-                resultTime = resultTime.divide(BigDecimal.valueOf(getHowManyRepeats()), RoundingMode.UP);
-                label = structure.toString() + "\t" + "Dodawanie" + "\t" + place.toString() + "\t" + getHowManyElements() + "\t" + getHowManyRepeats();
-                message(resultTime.toString(), false);
-                results.add(label, resultTime.longValue());
-                break;
-            case 2://Usun ze struktury
-                for (int i = 0; i < getHowManyRepeats(); i++) {
-                    message(showProgress(i, getHowManyRepeats()) + "     " +
-                            structure.toString() + "  " + getHowManyElements() + "  " +
-                            place.toString() + " Odejmowanie", false);
-
-                    populationGenerator = new PopulationGenerator();
-                    if (structure.getClass() == Table.class) {
-                        Table table = new Table();
-                        table.addAll(populationGenerator.getPopulation());
-                        tracker.start();
-                        table.subtract(place, 0);
-                        resultTime = resultTime.add(tracker.getElapsedTime());
-                    } else {
-                        for (int k = 0; k < populationGenerator.getPopulation().length; k++)
-                            structure.add(Place.END, populationGenerator.getPopulation()[k]);
-                        int rand = random.nextInt();
-                        tracker.start();
-                        structure.subtract(place, rand);
-                        resultTime = resultTime.add(tracker.getElapsedTime());
-                        structure.clear();
-                    }
-                }
-                resultTime = resultTime.divide(BigDecimal.valueOf(getHowManyRepeats()), RoundingMode.UP);
-                label = structure.toString() + "\t" + "Usuwanie" + "\t" + place.toString() + "\t" +
-                        getHowManyElements() + "\t" + getHowManyRepeats();
-                message(resultTime.toString(), false);
-                results.add(label, resultTime.longValue());
-                break;
-            case 3://Wyszukaj w strukturze
-                for (int i = 0; i < getHowManyRepeats(); i++) {
-                    message(showProgress(i, getHowManyRepeats()) + "     " +
-                            structure.toString() + "  " + getHowManyElements() + " Wyszukiwanie", false);
-
-                    populationGenerator = new PopulationGenerator();
-                    if (structure.getClass() == Table.class) {
-                        Table table = (Table) structure;
-                        table.addAll(populationGenerator.getPopulation());
-                        int rand = random.nextInt();
-                        tracker.start();
-                        table.find(rand);
-                        resultTime = resultTime.add(tracker.getElapsedTime());
-                    } else {
-                        for (int k = 0; k < populationGenerator.getPopulation().length; k++)
-                            structure.add(Place.END, populationGenerator.getPopulation()[k]);
-                        int rand = random.nextInt();
-                        tracker.start();
-                        structure.find(rand);
-                        resultTime = resultTime.add(tracker.getElapsedTime());
-                        structure.clear();
-                    }
-                }
-                resultTime = resultTime.divide(BigDecimal.valueOf(getHowManyRepeats()), RoundingMode.UP);
-                label = structure.toString() + "\t" + "Wyszukiwanie" + "\t" + "-" + "\t" +
-                        getHowManyElements() + "\t" + getHowManyRepeats();
-                message(resultTime.toString(), false);
-                results.add(label, resultTime.longValue());
-                break;
-            case 4://Ustawienia
-                Settings.message();
-                changeSettings();
-                break;
-            case 5://Pokaż wyniki
-                message(results.show(), false);
-                break;
-            case 0://Zakończ test
-                break;
+            }
+            results.save();
         }
-    }*/
+        results.save();
+        results.clear();
+    }
 
     /**
      * Funkcja pozwalająca na wybór, przez użytkownika, miejsca wstawienia danych.
@@ -316,9 +245,9 @@ public class View {
      */
     private Algorithm chooseAlgorithm() {
         View.message("Dostępne algorytmy", false);
-        View.message("1. "+task.getAvailableAlgorithms()[0].toString(), false);
-        View.message("2. "+task.getAvailableAlgorithms()[1].toString(), false);
-        return task.getAvailableAlgorithms()[View.select("Podaj numer wybranego algorytmu", 1, 2)-1];
+        View.message("1. " + task.getAvailableAlgorithms()[0].toString(), false);
+        View.message("2. " + task.getAvailableAlgorithms()[1].toString(), false);
+        return task.getAvailableAlgorithms()[View.select("Podaj numer wybranego algorytmu", 1, 2) - 1];
     }
 
     /**
@@ -328,49 +257,32 @@ public class View {
      * @param end Wartość końcowa.
      * @return Zwraca postęp w postaci paska oraz procentu w postaci ułamka.
      */
-    private String showProgress(int now, int end) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("[");
-        int percent = (int) ((now * 100.0f) / end);
-        for (int i = 0; i <= percent; i++) stringBuilder.append("=");
-        for (int i = 0; i <= 100 - percent; i++) stringBuilder.append(" ");
-        stringBuilder.append("]");
-        stringBuilder.append(" ").append(percent).append("%");
-        return stringBuilder.toString();
+    private String showProgress(int now, int end, long time,String label) {
+        //        StringBuilder stringBuilder = new StringBuilder();
+        //        stringBuilder.append("[");
+        //        int percent = (int) ((now * 100.0f) / end);
+        //        for (int i = 0; i <= percent; i++) stringBuilder.append("=");
+        //        for (int i = 0; i <= 100 - percent; i++) stringBuilder.append(" ");
+        //        stringBuilder.append("]");
+        //        stringBuilder.append(" ").append(percent).append("%");
+        //        return stringBuilder.toString();
+
+        StringBuilder string = new StringBuilder(140);
+        int percent = (now * 100 / end);
+        string
+                .append('\r')
+                .append(String.join("", Collections.nCopies(percent == 0 ? 2 : 2 - (int) (Math.log10(percent)), " ")))
+                .append(String.format(" %d%% [", percent))
+                .append(String.join("", Collections.nCopies(percent, "=")))
+                .append('>')
+                .append(String.join("", Collections.nCopies(100 - percent, " ")))
+                .append(']')
+                //.append(String.join("", Collections.nCopies((int) (Math.log10(end)) - (int) (Math.log10(now)), " ")))
+                .append(String.format(" %d/%d    %d    %s", now, end,time,label));
+        System.out.print(string);
+        return "";
     }
 
-    /**
-     * Funkcja pozwalająca na wykonanie pełnych testów.
-     */
-    /*
-    private void fullTest() {
-        int[] howMany = {2000, 4000, 6000, 8000, 10000};
-        Structure[] structures = {new BstTree()};//new Table(),new BidirectionalList(), new BinaryHeap(), new BstTree()
-        Place[] places = {Place.START, Place.END, Place.RANDOM};//Place.START, Place.END, Place.RANDOM
-        int[] tests = {1, 2, 3};//1, 2, 3
-        for (Structure structure : structures) {
-            this.structure = structure;
-            for (int test : tests) {
-                if ((this.structure.getClass() == Table.class && test != 3) || (this.structure.getClass() == BidirectionalList.class && test != 3)) {
-                    for (Place place : places) {
-                        for (int how : howMany) {
-                            setSettings(how, getHowManyRepeats());
-                            test(test, place);
-                        }
-                        results.save();
-                    }
-                } else {
-                    for (int how : howMany) {
-                        setSettings(how, getHowManyRepeats());
-                        test(test, Place.NULL);
-                    }
-                    results.save();
-                }
-            }
-        }
-        results.save();
-        results.clear();
-    }*/
 
     public static void main(String[] args) {
         new View();
