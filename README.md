@@ -5,4 +5,5 @@ Testowane są algorytmy:
 - Kruskala
 - Dijkstry
 - Forda-Bellmana
+
 Program stworzony w ramach projektu z kursu pod tytułem: "Struktury danych i złożoność obliczeniowa"
